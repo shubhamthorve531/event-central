@@ -1,17 +1,24 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import Home from "./pages/Home";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
+import AdminCreateEvent from "./pages/AdminCreateEvent";
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-<div className="p-4">
-      <h1 className="text-2xl font-bold">Event Central</h1>
-      <p>Welcome to Event Management Platform</p>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/admin/create-event" element={<AdminCreateEvent />} />
+        {/* Add more routes as needed */}
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
