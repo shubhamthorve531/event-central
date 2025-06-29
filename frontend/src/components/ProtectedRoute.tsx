@@ -1,12 +1,20 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { type JSX } from "react";
+import type { JSX } from "react";
 
-export function ProtectedRoute({ children, allowedRoles }: { children: JSX.Element; allowedRoles?: string[] }) {
-  const { token, role } = useAuth();
+interface ProtectedRouteProps {
+  children: JSX.Element;
+  allowedRoles?: string[]; // optional
+}
 
-  if (!token) return <Navigate to="/login" />;
-  if (allowedRoles && !allowedRoles.includes(role ?? "")) return <Navigate to="/" />;
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, role } = useAuth();
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && !allowedRoles.includes(role || "")) {
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 }

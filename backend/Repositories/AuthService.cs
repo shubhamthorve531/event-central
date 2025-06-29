@@ -1,13 +1,14 @@
-﻿using backend.Models;
+﻿using backend.DTOs;
+using backend.Models;
+using BCrypt.Net;
 using EventCentral.Repositories.Interfaces;
 using EventCentral.Services.Interfaces;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
 using System.Xml.Serialization;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace EventCentral.Services
 {
@@ -22,7 +23,7 @@ namespace EventCentral.Services
             _config = config;
         }
 
-        public async Task<bool> RegisterAsync(string fullName,string email, string password)
+        public async Task<bool> RegisterAsync(string fullName, string email, string password)
         {
             if (await _userRepo.ExistsAsync(email))
                 return false;
@@ -39,7 +40,8 @@ namespace EventCentral.Services
             return true;
         }
 
-        public async Task<string?> LoginAsync(string email, string password)
+
+        public async Task<AuthResultDto?> LoginAsync(string email, string password)
         {
             var user = await _userRepo.GetByEmailAsync(email);
             if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
@@ -64,7 +66,13 @@ namespace EventCentral.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            return new AuthResultDto
+            {
+                Token = tokenHandler.WriteToken(token),
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = user.Role
+            };
         }
     }
 }

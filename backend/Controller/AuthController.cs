@@ -29,11 +29,11 @@ namespace EventCentral.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserDto dto)
         {
-            var token = await _authService.LoginAsync(dto.Email, dto.Password);
-            if (token == null)
+            var result = await _authService.LoginAsync(dto.Email, dto.Password);
+            if (result == null)
                 return Unauthorized("Invalid credentials");
 
-            return Ok(new { token, role = "user" });
+            return Ok(result);
         }
     }
 }

@@ -5,17 +5,26 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import AdminCreateEvent from "./pages/AdminCreateEvent";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 function App() {
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ProtectedRoute allowedRoles={["admin","user"]}><Home /></ProtectedRoute>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/admin/create-event" element={<AdminCreateEvent />} />
-        {/* Add more routes as needed */}
+        
+        <Route
+          path="/admin/create-event"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminCreateEvent />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Add more routes here */}
       </Routes>
     </BrowserRouter>
   );
