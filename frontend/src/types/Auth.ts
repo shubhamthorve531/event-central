@@ -1,11 +1,8 @@
 export interface LoginResponse {
   token: string;
+  email: string;
+  fullName: string;
   role: string;
-  user?: {
-    id: number;
-    email: string;
-    fullname: string;
-  };
 }
 
 export interface RegisterResponse {

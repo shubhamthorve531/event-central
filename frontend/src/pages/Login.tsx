@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AuthService } from "../services/AuthService";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -15,12 +16,15 @@ export default function LoginPage() {
   async function handleLogin() {
     setIsLoading(true);
     try {
-      const { token, role } = await AuthService.login(email, password);
-      login(token, role);
-      alert("Login successful");
+      const response = await AuthService.login(email, password);
+      const { token, role, email: userEmail, fullName } = response;
+      
+      // Pass the correct parameters to login function
+      login(token, role, userEmail, fullName);
+      toast.success("Login successful");
       navigate("/");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Invalid credentials");
+      toast.error(error instanceof Error ? error.message : "Invalid credentials");
     } finally {
       setIsLoading(false);
     }

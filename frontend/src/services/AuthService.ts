@@ -14,7 +14,7 @@ const authApi = axios.create({
 authApi.interceptors.request.use(
   (config) => {
     // Add auth token if available for protected routes
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -34,8 +34,9 @@ authApi.interceptors.response.use(
     // Handle auth-specific errors
     if (error.response?.status === 401) {
       // Unauthorized - clear stored auth data
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userRole');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
       console.error('Authentication failed - redirecting to login');
     } else if (error.response?.status === 403) {
       console.error('Access forbidden');
@@ -54,10 +55,17 @@ export const AuthService = {
         password,
       });
       
-      // Store token if login successful
+      // Store token and user data if login successful
       if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-        localStorage.setItem('userRole', response.data.role);
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        
+        // Store user data from response
+        const userData = {
+          email: response.data.email,
+          fullName: response.data.fullName
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
       }
       
       return response.data;
@@ -91,7 +99,7 @@ export const AuthService = {
         if (error.response?.status === 409) {
           throw new Error('Email already exists. Please use a different email.');
         } else if (error.response?.status === 400) {
-          throw new Error('Please provide valid registration details');
+          throw new Error(error?.response?.data || 'Invalid registration data');
         } else if (error.response?.data?.message) {
           throw new Error(error.response.data.message);
         }
@@ -109,18 +117,9 @@ export const AuthService = {
       // Continue with local cleanup even if API call fails
     } finally {
       // Always clear local storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userRole');
-    }
-  },
-
-  async getCurrentUser(): Promise<any> {
-    try {
-      const response = await authApi.get('/me');
-      return response.data;
-    } catch (error) {
-      console.error('Get current user error:', error);
-      throw new Error('Failed to get user information');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
     }
   },
 
@@ -129,26 +128,39 @@ export const AuthService = {
       const response = await authApi.post<LoginResponse>('/refresh');
       
       if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        
+        const userData = {
+          email: response.data.email,
+          fullName: response.data.fullName
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
       }
       
       return response.data;
     } catch (error) {
       console.error('Token refresh error:', error);
       // Clear stored auth data on refresh failure
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userRole');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user');
       throw new Error('Session expired. Please login again.');
     }
   },
 
   // Utility methods
   getStoredToken(): string | null {
-    return localStorage.getItem('authToken');
+    return localStorage.getItem('token');
   },
 
   getStoredRole(): string | null {
-    return localStorage.getItem('userRole');
+    return localStorage.getItem('role');
+  },
+
+  getStoredUser(): any | null {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
   },
 
   isAuthenticated(): boolean {

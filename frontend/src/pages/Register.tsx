@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthService } from "../services/AuthService";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -15,17 +16,17 @@ export default function RegisterPage() {
 
   async function handleRegister() {
     if (password !== confirmPassword) {
-      alert("Passwords don't match!");
+      toast.error("Passwords don't match!");
       return;
     }
 
     setIsLoading(true);
     try {
       await AuthService.register(fullName,email, password);
-      alert("Registration successful! Please log in.");
+      toast.success("Registration successful! Please log in.");
       navigate("/login");
-    } catch {
-      alert("Registration failed. Please try again.");
+    } catch (err){
+      toast.error(err instanceof Error ? err.message : "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
