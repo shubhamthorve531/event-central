@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 
 interface User {
   email: string;
-  fullName: string; // Changed to match your API
+  fullName: string;
 }
 
 interface AuthContextType {
@@ -11,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isLoading: boolean;
   login: (token: string, role: string, email: string, fullName: string) => void;
   logout: () => void;
 }
@@ -25,26 +26,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize state from localStorage on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedRole = localStorage.getItem("role");
-    const savedUser = localStorage.getItem("user");
-    
-    if (savedToken) {
-      setToken(savedToken);
-    }
-    if (savedRole) {
-      setRole(savedRole);
-    }
-    if (savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-      } catch (error) {
-        console.error('Error parsing saved user data:', error);
-        localStorage.removeItem("user");
+    try {
+      const savedToken = localStorage.getItem("token");
+      const savedRole = localStorage.getItem("role");
+      const savedUser = localStorage.getItem("user");
+      
+      if (savedToken) {
+        setToken(savedToken);
       }
+      if (savedRole) {
+        setRole(savedRole);
+      }
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch (error) {
+          console.error('Error parsing saved user data:', error);
+          localStorage.removeItem("user");
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring auth state:', error);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -71,16 +78,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isAuthenticated = !!token;
   const isAdmin = role === "admin";
-
-  const value: AuthContextType = {
+  const value = React.useMemo<AuthContextType>(() => ({
     token,
     role,
     user,
     isAuthenticated,
     isAdmin,
+    isLoading,
     login,
     logout,
-  };
+  }), [token, role, user, isAuthenticated, isAdmin, isLoading, login, logout]);
 
   return (
     <AuthContext.Provider value={value}>

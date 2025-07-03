@@ -9,6 +9,8 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./contexts/AuthContexts";
+import AdminEventList from "./pages/AdminEventList";
+import EditEvent from "./pages/EditEvent";
 
 function App() {
   return (
@@ -34,6 +36,24 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminCreateEvent />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/events"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminEventList />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/edit-event/:id"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <EditEvent />
                 </ProtectedRoute>
               }
             />

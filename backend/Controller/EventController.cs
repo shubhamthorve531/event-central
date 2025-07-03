@@ -35,6 +35,7 @@ namespace EventCentral.Controllers
         }
 
         // POST: api/event
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<Event>> CreateEvent(Event ev)
         {
@@ -44,6 +45,7 @@ namespace EventCentral.Controllers
         }
 
         // PUT: api/event/5
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEvent(int id, Event ev)
         {
@@ -62,6 +64,7 @@ namespace EventCentral.Controllers
         }
 
         // DELETE: api/event/5
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {

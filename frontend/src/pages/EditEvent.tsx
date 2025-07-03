@@ -1,9 +1,11 @@
-import { useState } from "react";
-import type { Event } from "../types/Event";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { EventService } from "../services/EventServices";
+import type { Event } from "../types/Event";
 import toast from "react-hot-toast";
+import { eventCategories } from "./AdminCreateEvent";
+import { formatDateForInput } from "../utilities/CommonUtility";
 
 interface FormErrors {
   title?: string;
@@ -13,23 +15,11 @@ interface FormErrors {
   date?: string;
 }
 
-  // Categories for dropdown
-  export const eventCategories = [
-    "Conference",
-    "Workshop",
-    "Seminar",
-    "Webinar",
-    "Networking",
-    "Training",
-    "Meeting",
-    "Social",
-    "Sports",
-    "Cultural",
-    "Other"
-  ];
-
-export default function AdminCreateEvent() {
-  const [form, setForm] = useState<Event>({
+export default function EditEvent() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [event, setEvent] = useState<Event>({
     title: "",
     description: "",
     category: "",
@@ -38,44 +28,67 @@ export default function AdminCreateEvent() {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setIsLoading(true);
+        const eventData = await EventService.getEvent(Number(id));
+        const formattedEvent = {
+          ...eventData,
+          date: formatDateForInput(eventData.date)
+        };
+        setEvent(formattedEvent);
+      } catch (error) {
+        console.error("Failed to fetch event:", error);
+        toast.error("Failed to load event");
+        navigate("/admin/events");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchEvent();
+    }
+  }, [id, navigate]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!form.title.trim()) {
+    if (!event.title.trim()) {
       newErrors.title = "Event title is required";
-    } else if (form.title.length < 3) {
+    } else if (event.title.length < 3) {
       newErrors.title = "Title must be at least 3 characters long";
-    } else if (form.title.length > 100) {
+    } else if (event.title.length > 100) {
       newErrors.title = "Title must be less than 100 characters";
     }
 
-    if (!form.description.trim()) {
+    if (!event.description.trim()) {
       newErrors.description = "Event description is required";
-    } else if (form.description.length < 10) {
+    } else if (event.description.length < 10) {
       newErrors.description = "Description must be at least 10 characters long";
-    } else if (form.description.length > 1000) {
+    } else if (event.description.length > 1000) {
       newErrors.description = "Description must be less than 1000 characters";
     }
 
-    if (!form.category) {
+    if (!event.category) {
       newErrors.category = "Please select a category";
     }
 
-    if (!form.location.trim()) {
+    if (!event.location.trim()) {
       newErrors.location = "Event location is required";
-    } else if (form.location.length < 3) {
+    } else if (event.location.length < 3) {
       newErrors.location = "Location must be at least 3 characters long";
     }
 
-    if (!form.date) {
+    if (!event.date) {
       newErrors.date = "Event date is required";
     } else {
-      const selectedDate = new Date(form.date);
+      const selectedDate = new Date(event.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -90,7 +103,7 @@ export default function AdminCreateEvent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    setEvent({ ...event, [name]: value });
     setIsDirty(true);
 
     // Clear error for this field when user starts typing
@@ -99,34 +112,32 @@ export default function AdminCreateEvent() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleUpdate = async () => {
     if (!validateForm()) {
-      toast.error("Please fix the errors before submitting");
+      toast.error("Please fix the errors before updating");
       return;
     }
 
-    setIsLoading(true);
+    setIsUpdating(true);
     try {
-      await EventService.createEvent(form);
-      toast.success("Event created successfully!");
-      navigate("/");
+      await EventService.updateEvent({ ...event, id: Number(id) });
+      toast.success("Event updated successfully!");
+      navigate("/admin/events");
     } catch (error) {
-      console.error("Error creating event:", error);
-      toast.error("Failed to create event. Please try again.");
+      console.error("Failed to update event:", error);
+      toast.error("Failed to update event. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsUpdating(false);
     }
   };
 
   const handleCancel = () => {
     if (isDirty) {
       if (window.confirm("You have unsaved changes. Are you sure you want to leave?")) {
-        navigate(-1);
+        navigate("/admin/events");
       }
     } else {
-      navigate(-1);
+      navigate("/admin/events");
     }
   };
 
@@ -137,14 +148,28 @@ export default function AdminCreateEvent() {
         : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'
     }`;
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <svg className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="text-gray-600">Loading event...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Breadcrumb at top left */}
+        {/* Breadcrumb */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <button 
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/admin/events')}
               className="hover:text-blue-600 transition-colors duration-200"
             >
               Events
@@ -152,30 +177,30 @@ export default function AdminCreateEvent() {
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd"/>
             </svg>
-            <span>Create Event</span>
+            <span>Edit Event</span>
           </div>
           
-          {/* User context - compact */}
+          {/* User context */}
           <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
             <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-blue-600 font-semibold text-xs">
                 {user?.fullName?.split(' ').map(n => n[0]).join('') || 'A'}
               </span>
             </div>
-            <span className="text-xs">Creating as {user?.fullName || 'Admin'}</span>
+            <span className="text-xs">Editing as {user?.fullName || 'Admin'}</span>
           </div>
         </div>
 
-        {/* Compact Header */}
+        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Create New Event</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Edit Event</h1>
           <p className="text-gray-600 text-sm">
-            Fill in the details below to create a new event for your organization.
+            Update the event details below to modify the existing event.
           </p>
         </div>
 
-        {/* Form without card structure */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Form */}
+        <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-4">
           {/* Event Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -186,7 +211,7 @@ export default function AdminCreateEvent() {
               id="title"
               name="title"
               placeholder="Enter a compelling event title..."
-              value={form.title}
+              value={event.title}
               onChange={handleChange}
               className={inputClasses('title')}
               maxLength={100}
@@ -200,7 +225,7 @@ export default function AdminCreateEvent() {
               </p>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              {form.title.length}/100 characters
+              {event.title.length}/100 characters
             </p>
           </div>
 
@@ -214,7 +239,7 @@ export default function AdminCreateEvent() {
               name="description"
               rows={3}
               placeholder="Provide a detailed description of your event..."
-              value={form.description}
+              value={event.description}
               onChange={handleChange}
               className={`${inputClasses('description')} resize-none`}
               maxLength={1000}
@@ -228,7 +253,7 @@ export default function AdminCreateEvent() {
               </p>
             )}
             <p className="mt-1 text-xs text-gray-500">
-              {form.description.length}/1000 characters
+              {event.description.length}/1000 characters
             </p>
           </div>
 
@@ -242,7 +267,7 @@ export default function AdminCreateEvent() {
               <select
                 id="category"
                 name="category"
-                value={form.category}
+                value={event.category}
                 onChange={handleChange}
                 className={inputClasses('category')}
               >
@@ -273,7 +298,7 @@ export default function AdminCreateEvent() {
                 id="location"
                 name="location"
                 placeholder="Event venue or online link..."
-                value={form.location}
+                value={event.location}
                 onChange={handleChange}
                 className={inputClasses('location')}
               />
@@ -297,7 +322,7 @@ export default function AdminCreateEvent() {
               type="date"
               id="date"
               name="date"
-              value={form.date}
+              value={event.date}
               onChange={handleChange}
               min={new Date().toISOString().split('T')[0]}
               className={inputClasses('date')}
@@ -319,29 +344,29 @@ export default function AdminCreateEvent() {
                 type="button"
                 onClick={handleCancel}
                 className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 font-medium"
-                disabled={isLoading}
+                disabled={isUpdating}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isUpdating}
                 className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                {isLoading ? (
+                {isUpdating ? (
                   <>
                     <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating...
+                    Updating...
                   </>
                 ) : (
                   <>
                     <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/>
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                     </svg>
-                    Create Event
+                    Update Event
                   </>
                 )}
               </button>
@@ -349,19 +374,19 @@ export default function AdminCreateEvent() {
           </div>
         </form>
 
-        {/* Compact Tips Section */}
+        {/* Info Section */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
           <h3 className="text-sm font-medium text-blue-900 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
             </svg>
-            Quick Tips
+            Editing Tips
           </h3>
           <ul className="text-blue-800 space-y-1 text-xs">
-            <li>• Choose a clear, descriptive title</li>
-            <li>• Include key details like agenda or speakers in description</li>
-            <li>• For virtual events, add meeting links in location</li>
-            <li>• Double-check date and time before creating</li>
+            <li>• Make sure the event date is not in the past</li>
+            <li>• Update the description to reflect any changes in agenda or speakers</li>
+            <li>• Double-check location details, especially for virtual events</li>
+            <li>• Changes will be visible to all event attendees</li>
           </ul>
         </div>
       </div>

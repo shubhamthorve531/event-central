@@ -162,4 +162,3 @@ C:\Shubham\event-central\backend\bin\Debug\net9.0\runtimes\win\lib\net6.0\System
 C:\Shubham\event-central\backend\bin\Debug\net9.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Shubham\event-central\backend\bin\Debug\net9.0\BCrypt.Net-Next.dll
 C:\Shubham\event-central\backend\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-C:\Shubham\event-central\backend\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
