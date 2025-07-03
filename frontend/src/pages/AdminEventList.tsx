@@ -96,6 +96,14 @@ export default function AdminEventList() {
     return eventDate >= today;
   };
 
+  const getInitials = (name: string) => {
+    return name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "?";
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -138,36 +146,23 @@ export default function AdminEventList() {
               Manage and organize your events
             </p>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
-              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold text-xs">
-                  {user?.fullName
-                    ?.split(" ")
-                    .map((n) => n[0])
-                    .join("") || "A"}
-                </span>
-              </div>
-              <span className="text-xs">{user?.fullName || "Admin"}</span>
-            </div>
-            <button
-              onClick={handleCreateNew}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center text-sm font-medium"
+          <button
+            onClick={handleCreateNew}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center text-sm font-medium"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
             >
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Create Event
-            </button>
-          </div>
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Create Event
+          </button>
         </div>
 
         {/* Filters */}
@@ -340,6 +335,9 @@ export default function AdminEventList() {
                       Location
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Creator
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -372,6 +370,24 @@ export default function AdminEventList() {
                         {event.location}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="relative group">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer">
+                              <span className="text-white font-semibold text-xs">
+                                {getInitials(event.creatorName || "Unknown")}
+                              </span>
+                            </div>
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                              <div className="font-medium">{event.creatorName || "Unknown Creator"}</div>
+                              <div className="text-xs text-gray-300">{event.creatorEmail || "No email"}</div>
+                              {/* Arrow */}
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                             isEventUpcoming(event.date)
@@ -401,7 +417,7 @@ export default function AdminEventList() {
                             className="text-red-600 hover:text-red-900 transition-colors duration-200"
                           >
                             <svg
-                              className="w-5 h-5 text-red-600 hover:text-red-800 transition-colors duration-200"
+                              className="w-4 h-4"
                               fill="none"
                               stroke="currentColor"
                               strokeWidth={2}
@@ -446,13 +462,33 @@ export default function AdminEventList() {
                   <p className="text-xs text-gray-500 mb-2 line-clamp-2">
                     {event.description}
                   </p>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                     <div className="flex items-center space-x-4">
                       <span className="inline-flex px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
                         {event.category}
                       </span>
                       <span>{formatDate(event.date)}</span>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="relative group">
+                        <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-xs">
+                            {getInitials(event.creatorName || "Unknown")}
+                          </span>
+                        </div>
+                        {/* Mobile Tooltip */}
+                        <div className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                          <div className="font-medium">{event.creatorName || "Unknown"}</div>
+                          <div className="text-xs text-gray-300">{event.creatorEmail || "No email"}</div>
+                          <div className="absolute top-full right-2 border-2 border-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500 truncate flex-1 mr-4">
+                      {event.location}
+                    </p>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEdit(event.id!)}
@@ -472,26 +508,20 @@ export default function AdminEventList() {
                       >
                         <svg
                           className="w-4 h-4"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
                         >
                           <path
-                            fillRule="evenodd"
-                            d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
-                            clipRule="evenodd"
-                          />
-                          <path
-                            fillRule="evenodd"
-                            d="M10 5a1 1 0 011 1v3l1.586-1.586a1 1 0 011.414 1.414L12 11.414V14a1 1 0 11-2 0v-2.586L8.586 13H7a1 1 0 010-2h1.586L10 9.586V6a1 1 0 011-1z"
-                            clipRule="evenodd"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-6 0V5a1 1 0 011-1h4a1 1 0 011 1v2"
                           />
                         </svg>
                       </button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 truncate">
-                    {event.location}
-                  </p>
                 </div>
               ))}
             </div>

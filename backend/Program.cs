@@ -1,3 +1,4 @@
+using backend.Services;
 using EventCentral.API.Data;
 using EventCentral.Repositories;
 using EventCentral.Repositories.Interfaces;
@@ -29,6 +30,8 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEventRegistrationService, EventRegistrationService>();
+builder.Services.AddScoped<IEventService, EventService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>

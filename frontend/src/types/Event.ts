@@ -5,4 +5,7 @@ export interface Event {
   category: string;
   location: string;
   date: string; // ISO format
+  creatorName:string;
+  creatorEmail: string;
+  registrationCount?: number;
 }

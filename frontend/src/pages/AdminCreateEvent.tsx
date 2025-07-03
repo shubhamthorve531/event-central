@@ -35,6 +35,8 @@ export default function AdminCreateEvent() {
     category: "",
     location: "",
     date: "",
+    creatorName: "",
+    creatorEmail: ""
   });
 
   const [errors, setErrors] = useState<FormErrors>({});

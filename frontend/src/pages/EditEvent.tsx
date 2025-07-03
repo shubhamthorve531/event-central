@@ -25,6 +25,8 @@ export default function EditEvent() {
     category: "",
     location: "",
     date: "",
+    creatorName: "",
+    creatorEmail:""
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
