@@ -12,15 +12,44 @@ public class EventService : IEventService
         _context = context;
     }
 
-    public async Task<IEnumerable<Event>> GetEventsAsync()
-        => await _context.Events
-            .Include(e => e.Creator)
+    public async Task<IEnumerable<EventDto>> GetEventsAsync()
+    {
+        return await _context.Events
+            .Select(e => new EventDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                Category = e.Category,
+                Date = e.Date,
+                Location = e.Location,
+                CreatorId = e.CreatorId,
+                CreatorName = e.Creator.FullName,
+                CreatorEmail = e.Creator.Email,
+                RegistrationCount = _context.EventRegistrations.Count(r => r.EventId == e.Id)
+            })
             .ToListAsync();
+    }
 
-    public async Task<Event?> GetEventAsync(int id)
-        => await _context.Events
-            .Include(e => e.Creator)
-            .FirstOrDefaultAsync(e => e.Id == id);
+    public async Task<EventDto?> GetEventAsync(int id)
+    {
+        return await _context.Events
+            .Where(e => e.Id == id)
+            .Select(e => new EventDto
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                Category = e.Category,
+                Date = e.Date,
+                Location = e.Location,
+                CreatorId = e.CreatorId,
+                CreatorName = e.Creator.FullName,
+                CreatorEmail = e.Creator.Email,
+                RegistrationCount = _context.EventRegistrations.Count(r => r.EventId == e.Id)
+            })
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<Event> CreateEventAsync(Event ev)
     {

@@ -9,4 +9,5 @@ public class EventDto
     public int CreatorId { get; set; }
     public string CreatorName { get; set; } = string.Empty;
     public string CreatorEmail { get; set; } = string.Empty;
+    public int RegistrationCount { get; internal set; }
 }
