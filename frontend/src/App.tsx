@@ -11,6 +11,8 @@ import Navbar from "./components/Navbar";
 import { AuthProvider } from "./contexts/AuthContexts";
 import AdminEventList from "./pages/AdminEventList";
 import EditEvent from "./pages/EditEvent";
+import MyRegistrations from "./pages/MyRegistrations";
+import { Dashboard } from "./pages/Dashboard";
 
 function App() {
   return (
@@ -30,6 +32,15 @@ function App() {
             />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "user"]}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
             <Route
               path="/admin/create-event"
@@ -54,6 +65,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <EditEvent />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/my-registrations"
+              element={
+                <ProtectedRoute>
+                  <MyRegistrations />
                 </ProtectedRoute>
               }
             />

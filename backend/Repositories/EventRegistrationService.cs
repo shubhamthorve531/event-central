@@ -62,5 +62,10 @@ namespace backend.Services
             return await _context.EventRegistrations
                 .CountAsync(r => r.EventId == eventId);
         }
+
+        public async Task<bool> IsUserRegisteredAsync(int userId, int eventId)
+        {
+            return await _context.EventRegistrations.AnyAsync(r => r.UserId == userId && r.EventId == eventId);
+        }
     }
 }

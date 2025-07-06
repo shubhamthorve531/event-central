@@ -86,7 +86,14 @@ export default function Navbar() {
                   <span>Events</span>
                 </span>
               </Link>
-
+                <Link to="/my-registrations" className={navLinkClass("/my-registrations")}>
+                <span className="flex items-center space-x-1">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8 9a3 3 0 116 0 3 3 0 01-6 0zM2 16a6 6 0 1112 0H2z" clipRule="evenodd"/>
+                  </svg>
+                  <span>My Registrations</span>
+                </span>
+                </Link>
               {/* Admin Links */}
               {token && role === "admin" && (
                 <>
@@ -293,7 +300,18 @@ export default function Navbar() {
                   <span>Events</span>
                 </span>
               </Link>
-
+                <Link
+                to="/my-registrations"
+                className={mobileNavLinkClass("/my-registrations")}
+                onClick={() => setIsMobileMenuOpen(false)}
+                >
+                <span className="flex items-center space-x-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8 9a3 3 0 116 0 3 3 0 01-6 0zM2 16a6 6 0 1112 0H2z" clipRule="evenodd"/>
+                  </svg>
+                  <span>My Registrations</span>
+                </span>
+                </Link>
               {/* Mobile Admin Links */}
               {token && role === "admin" && (
                 <>

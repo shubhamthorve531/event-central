@@ -8,4 +8,5 @@ public interface IEventRegistrationService
     Task<(bool Success, string Message)> UnregisterAsync(int userId, int eventId);
     Task<IEnumerable<Event>> GetRegisteredEventsAsync(int userId);
     Task<int> GetRegistrationCountAsync(int eventId);
+    Task<bool> IsUserRegisteredAsync(int userId, int eventId);
 }

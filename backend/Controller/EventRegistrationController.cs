@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -23,6 +22,11 @@ namespace EventCentral.Controllers
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
                 return Unauthorized();
+
+            // Check if the user is already registered for the event
+            var isRegistered = await _service.IsUserRegisteredAsync(userId, eventId);
+            if (isRegistered)
+                return Conflict("You are already registered for this event.");
 
             var result = await _service.RegisterAsync(userId, eventId);
             if (!result.Success)
@@ -63,6 +67,18 @@ namespace EventCentral.Controllers
         {
             var count = await _service.GetRegistrationCountAsync(eventId);
             return Ok(new { count });
+        }
+
+        [Authorize]
+        [HttpGet("{eventId}/is-registered")]
+        public async Task<IActionResult> IsRegistered(int eventId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var isRegistered = await _service.IsUserRegisteredAsync(userId, eventId);
+            return Ok(new { isRegistered });
         }
     }
 }
